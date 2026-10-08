@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This template creates 1 VPC, 2 public subnets in different AZs ,Internet Gateway, Route Table, Routes from both subnets to the Internet Gateway
+
+Resources:
+  VPCInstance:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      Tags:
+        - Key: Name
+          Value: ProductionVPC
+
+  Subnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: "10.0.1.0/24"
+      VpcId:
+        Ref: VPCInstance
+      AvailabilityZoneId: "use1-az1"
+      Tags:
+        - Key: Name
+          Value: PublicSubnetA
+
+  Subnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: "10.0.2.0/24"
+      VpcId:
+        Ref: VPCInstance
+      AvailabilityZoneId: "use1-az2"
+      Tags:
+        - Key: Name
+          Value: PublicSubnetB
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: MyInternetGateway
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: VPCInstance
+      InternetGatewayId:
+        Ref: InternetGateway
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPCInstance
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+
+  RouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: Subnet1
+      RouteTableId:
+        Ref: RouteTable
+
+  RouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: Subnet2
+      RouteTableId:
+        Ref: RouteTable
+
+  Route:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: RouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId:
+        Ref: InternetGateway
+
+Outputs:
+  Subnet1Id:
+    Description: The Subnet ID of the first subnet
+    Value:
+      Ref: Subnet1
+  Subnet2Id:
+    Description: The Subnet ID of the second subnet
+    Value:
+      Ref: Subnet2

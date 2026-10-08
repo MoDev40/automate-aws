@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: this template creates an EC2 instance with a security group
+
+Metadata:
+  Instances:
+    Description: "creates an EC2 instance with a security group"
+
+Parameters:
+  Instance:
+    Type: String
+    AllowedValues:
+      - t3.micro
+      - t3.small
+    Default: t3.micro
+    ConstraintDescription: Must be an existing instance
+
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access via port 22 and HTTP via port 80
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "22"
+          ToPort: "22"
+          CidrIp: "0.0.0.0/0"
+        - IpProtocol: tcp
+          FromPort: "80"
+          ToPort: "80"
+          CidrIp: "0.0.0.0/0"
+
+  Ec2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType:
+        Ref: Instance
+      ImageId: ami-0d27e0fb3bac4d724
+      SecurityGroupIds:
+        - Ref: SecurityGroup
+      KeyName: mdev-pc
+
+Outputs:
+  PublicIP:
+    Description: The Public IP address of the instance
+    Value:
+      Fn::GetAtt:
+        - Ec2Instance
+        - PublicIp
